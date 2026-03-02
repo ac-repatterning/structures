@@ -1,0 +1,243 @@
+name: 'Hydrography: Structures'
+
+on: [push]
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    name: Code Analysis
+    runs-on: ubuntu-latest
+
+    strategy:
+      max-parallel: 4
+      fail-fast: false
+      matrix:
+        python-version: [3.13]
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f ${{ github.workspace }}/.devcontainer/requirements.txt ]; then pip install -r ${{ github.workspace }}/.devcontainer/requirements.txt; fi
+
+      - name: Lint with flake8
+        run: |
+          printf "\n"
+          echo "============================= flake8 session starts =============================="
+          printf "\n"
+          
+          
+          # stop the build if there are Python syntax errors or undefined names
+          printf "\n"
+          echo "Issues in relation to logic (F7), syntax (Python E9, Flake F7), mathematical
+          formulae symbols (F63), undefined variable names (F82):"
+          
+          printf "\n src/algorithms "
+          flake8 --count --select=E9,F63,F7,F82 --show-source --statistics src/algorithms
+          
+          printf "\n src/assets "
+          flake8 --count --select=E9,F63,F7,F82 --show-source --statistics src/assets
+          
+          printf "\n src/elements "
+          flake8 --count --select=E9,F63,F7,F82 --show-source --statistics src/elements
+          
+          printf "\n src/functions "
+          flake8 --count --select=E9,F63,F7,F82 --show-source --statistics src/functions
+          
+          printf "\n src/preface "
+          flake8 --count --select=E9,F63,F7,F82 --show-source --statistics src/preface
+          
+          printf "\n src/s3 "
+          flake8 --count --select=E9,F63,F7,F82 --show-source --statistics src/s3
+          
+          printf "\n src/transfer "
+          flake8 --count --select=E9,F63,F7,F82 --show-source --statistics src/transfer
+          
+          
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          printf "\n\n"
+          echo "Complexity issues:"
+          
+          printf "\n src/algorithms "
+          flake8 --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics src/algorithms
+          
+          printf "\n src/assets "
+          flake8 --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics src/assets
+          
+          printf "\n src/elements "
+          flake8 --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics src/elements
+          
+          printf "\n src/functions "
+          flake8 --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics src/functions
+          
+          printf "\n src/preface "
+          flake8 --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics src/preface
+          
+          printf "\n src/s3 "
+          flake8 --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics src/s3
+          
+          printf "\n src/transfer "
+          flake8 --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics src/transfer
+
+
+      - name: Lint with pylint
+        run: |
+          printf "\n"
+          echo "============================= pylint session starts =============================="
+          
+          printf "\n Package src/algorithms"
+          pylint --rcfile .pylintrc src/algorithms
+          
+          printf "\n Package src/assets"
+          pylint --rcfile .pylintrc src/assets
+          
+          printf "\n Package src/elements"
+          pylint --rcfile .pylintrc src/elements
+          
+          printf "\n Package src/functions"
+          pylint --rcfile .pylintrc src/functions
+          
+          printf "\n Package src/preface"
+          pylint --rcfile .pylintrc src/preface
+          
+          printf "\n Package src/s3"
+          pylint --rcfile .pylintrc src/s3
+          
+          printf "\n Package src/transfer"
+          pylint --rcfile .pylintrc src/transfer
+
+
+      - name: Test with pytest
+        run: |
+          printf "\n"
+          echo "============================= pytest session starts =============================="
+          
+          printf "\n"
+          printf "Upcoming ... pytest -o python_files=test_*.py"
+
+      - name: Coverage with pytest-cov
+        run: |
+          printf "\n"
+          echo "============================= coverage session starts =============================="
+          
+          printf "\nCoverage tests/algorithms/"
+          printf "\n Upcoming ... pytest --cov-report term-missing  --cov src/elements/ tests/algorithms/"
+          
+          printf "\nCoverage tests/assets/"
+          printf "\n Upcoming ... pytest --cov-report term-missing  --cov src/elements/ tests/assets/"
+          
+          printf "\nCoverage tests/elements/"
+          printf "\n Upcoming ... pytest --cov-report term-missing  --cov src/elements/ tests/elements/"
+          
+          printf "\nCoverage tests/functions/"
+          printf "\n Upcoming ... pytest --cov-report term-missing  --cov src/elements/ tests/functions/"
+          
+          printf "\nCoverage tests/preface/"
+          printf "\n Upcoming ... pytest --cov-report term-missing  --cov src/references/ tests/preface/"
+          
+          printf "\nCoverage tests/s3/"
+          printf "\n Upcoming ... pytest --cov-report term-missing  --cov src/references/ tests/s3/"
+          
+          printf "\nCoverage tests/transfer/"
+          printf "\n Upcoming ... pytest --cov-report term-missing  --cov src/references/ tests/transfer/"
+  
+
+  packages:
+    name: GitHub Packages Container Registry
+    needs: build
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Logging into GitHub Container
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        with:
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Build & Push
+        shell: bash
+        env:
+          REPOSITORY: ${{ github.repository }}
+          IMAGE_TAG: ${{ steps.meta.outputs.tags }}
+        run: |
+          docker build . --file Dockerfile --tag "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}
+
+      - name: Delete Packages
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: ${{ github.event.repository.name }}
+          package-type: 'container'
+          min-versions-to-keep: 1
+          delete-only-untagged-versions: 'true'
+
+  ecr:
+    name: Amazon Elastic Container Registry
+    needs: build
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ENTRY }}:role/${{ secrets.AWS_ARN_ECR_ACTIONS }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+        with:
+          registries: ${{ secrets.AWS_ENTRY }}
+          mask-password: "true"
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-publish
+        shell: bash
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.event.repository.name }}
+        run: |
+          docker build . --file Dockerfile --tag "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "An image has been pushed to $ECR_REGISTRY/$ECR_REPOSITORY"
+          echo "The image tag is $IMAGE_TAG"
