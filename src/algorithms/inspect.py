@@ -1,7 +1,6 @@
 """Module inspect.py"""
 import datetime
 
-import numpy as np
 import pandas as pd
 
 import src.elements.partitions as pr
