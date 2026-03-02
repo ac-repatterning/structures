@@ -1,4 +1,5 @@
 """Module interface.py"""
+
 import typing
 
 import boto3
@@ -47,13 +48,16 @@ class Interface:
         :return:
         """
 
-        # Initial setting
-        attributes['restart'] = bool(inactive)
-
-
-        if codes is None:
+        if attributes.get('restart'):
             attributes['excerpt'] = []
-        else:
+            return attributes
+
+        if (codes is None) & inactive:
+            attributes['excerpt'] = []
+            attributes['restart'] = True
+            return attributes
+
+        if codes:
             attributes['excerpt'] = codes
             attributes['restart'] = False
 
