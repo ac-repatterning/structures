@@ -10,14 +10,14 @@ class Specific:
         pass
 
     @staticmethod
-    def codes(value: str=None) -> list[int]:
+    def codes(value: str = '') -> list:
         """
 
         :param value:
         :return:
         """
 
-        if value is None:
+        if len(value) == 0:
             return []
 
         # Split and strip

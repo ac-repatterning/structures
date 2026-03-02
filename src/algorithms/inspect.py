@@ -1,8 +1,6 @@
 """Module inspect.py"""
 import datetime
-import logging
 
-import numpy as np
 import pandas as pd
 
 import src.elements.partitions as pr
@@ -33,21 +31,25 @@ class Inspect:
         dates = pd.date_range(
             start=_minimum, end=_maximum, freq=self.__frequency,
             inclusive='left' if _maximum.year != latest else 'both',
-            name='date').to_frame()
+            name='date', unit='ms').to_frame()
         dates.reset_index(drop=True, inplace=True)
 
         return dates
 
     @staticmethod
     def __set_missing(data: pd.DataFrame, partition: pr.Partitions) -> pd.DataFrame:
+        """
+
+        :param data:
+        :param partition:
+        :return:
+        """
 
         frame = data.copy()
         states = frame['measure'].isna()
-        logging.info(frame.loc[states, :])
 
         frame.loc[states, 'ts_id'] = partition.ts_id
-        frame.loc[states, 'timestamp'] = (frame.loc[states, 'date'].astype(np.int64)/1000000).values
-        logging.info(frame.loc[states, :])
+        frame.loc[states, 'timestamp'] = frame.loc[states, 'date'].to_numpy().view('int64')
 
         return frame
 

@@ -22,7 +22,6 @@ def main():
         service=service, s3_parameters=s3_parameters, attributes=attributes).exc()
     logger.info('# of partitions: %s', len(partitions))
 
-
     # Computations
     src.algorithms.interface.Interface().exc(partitions=partitions)
 
@@ -57,7 +56,7 @@ if __name__ == '__main__':
 
     specific = src.specific.Specific()
     parser = argparse.ArgumentParser()
-    parser.add_argument('--codes', type=specific.codes,
+    parser.add_argument('--codes', type=specific.codes, default='',
                         help='Expects a string of one or more comma separated gauge time series codes.')
     args = parser.parse_args()
 
