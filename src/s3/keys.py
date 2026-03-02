@@ -1,6 +1,5 @@
-"""
-Module keys.py
-"""
+"""Module keys.py"""
+
 import boto3
 import botocore.exceptions
 
