@@ -39,7 +39,7 @@ class Interface:
         return attributes
 
     @staticmethod
-    def __precedence(inactive: bool, codes: list[int], attributes: dict) -> dict:
+    def __precedence(inactive: bool, codes: list, attributes: dict) -> dict:
         """
 
         :param inactive: Is the cloud storage area inactive?
@@ -48,22 +48,20 @@ class Interface:
         :return:
         """
 
-        if attributes.get('restart'):
-            attributes['excerpt'] = []
+        if codes:
+            attributes['excerpt'] = codes
             return attributes
 
-        if (codes is None) & inactive:
+        if inactive:
             attributes['excerpt'] = []
             attributes['restart'] = True
             return attributes
 
-        if codes:
-            attributes['excerpt'] = codes
-            attributes['restart'] = False
+        attributes['excerpt'] = []
 
         return attributes
 
-    def exc(self, codes: list[int]) -> typing.Tuple[boto3.session.Session, s3p.S3Parameters, sr.Service, dict]:
+    def exc(self, codes: list) -> typing.Tuple[boto3.session.Session, s3p.S3Parameters, sr.Service, dict]:
         """
 
         :param codes:
